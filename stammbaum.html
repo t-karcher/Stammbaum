@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <style>
+
+.link { fill: none;
+        stroke: #000;
+        stroke-width: 1.5px; }
+
+  </style>
+</head>
+<body>
+  <script>
+
+var tree = d3.tree().nodeSize([(2 * Math.PI)/21.413, 650]);
+tree.separation((a, b) => {return 1 / a.depth});
+
+var svg = d3.select("body").append("svg")
+  .attr("width", 6400)
+  .attr("height", 4800);
+
+var grp = svg.append("g")
+  .attr("transform", "translate(" + 3350 + "," + 2400 + ")");
+
+var stratify = d3.stratify();
+
+d3.csv("daten20181109.csv", function(error, data) {
+  if (error) throw error;
+  update(tree(stratify(data)));
+});
+
+function update(treeData){
+
+  // Austrittsrichtung der Links aus der Baummitte korrieren
+  var treeLinks = treeData.links().map(d => ({
+        source: {
+          x:     (d.source.depth == 0 ? d.target.x : d.source.x),
+          y:     d.source.y,
+          depth: d.source.depth},
+        target: d.target})
+  );
+
+  // Verbindungslinien zu SVG-Objekt hinzufügen
+  var link = grp.selectAll(".link").data(treeLinks);
+  link.enter().append("path")
+    .merge(link)
+    .attr("class", "link")
+    .attr("d", d3.linkRadial()
+      .angle(d => getEllipticalPoint(d)[0])
+      .radius(d => getEllipticalPoint(d)[1]));
+
+  // Knoten inkl. Rechteck und Text zu SVG-Objekt hinzufügen
+  var node = grp.selectAll(".node").data(treeData.descendants());
+
+  var enterNodes = node.enter().append("g");
+  enterNodes.append("rect")
+    .attr("x", d => d.id == 1 ? -170 : -85)
+    .attr("y", d => d.id == 1 ? -100 : -50)
+    .attr("width", d => d.id == 1 ? 340 : 170)
+    .attr("height", d => d.id == 1 ? 200 : 100)
+    .attr("stroke", "black")
+    .attr("fill", "white");
+  var enterText = enterNodes.append("text")
+    .attr("y", -45)
+    .attr("style", "font: 10px sans-serif;")
+    .attr("transform", d => d.id == 1 ? "scale (2)" : "")
+
+  enterNodes.merge(node)
+    .attr("transform", d => "translate(" + getXYCoords(getEllipticalPoint(d)) + ")");
+
+  enterText.selectAll("tspan.text")
+    .data(d => d.data.infobox_gross.rot13().split("|"))
+    .enter()
+    .append("tspan")
+    .text(d => d)
+    .attr("text-anchor", "middle")
+    .attr("x", 0)
+    .attr("dy", 12);
+};
+
+// Umwandlung kreisförmig angeordneter Punkte in ellipsenförmig
+// angeordnete durch perspektivische Verzerrung
+function getEllipticalPoint (d) {
+  var r = d.depth > 0 ? d.y * (1 + ((5 - d.depth) / 8)*((5 - d.depth) / 8)) : d.y;
+  var x, y; [x, y] = getXYCoords([d.x, r]);
+  return getPolarCoords ([x, y*.65])}
+
+// Umrechnung von Polarkoordinaten (a, r) in kartesische Koordinaten (x, y)
+function getXYCoords([a, r]) {
+  return [(r = +r) * Math.cos(a -= Math.PI / 2), r * Math.sin(a)]}
+
+// Umrechnung von kartesischen Koordinaten in Polarkoordinaten
+function getPolarCoords ([x, y]) {
+  return [Math.atan2(x, y), Math.sqrt(x * x + y * y)]}
+
+String.prototype.rot13 = function() {
+  var input     = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  var output    = 'NOPQRSTUVWXYZABCDEFGHIJKLMnopqrstuvwxyzabcdefghijklm';
+  var index     = x => input.indexOf(x);
+  var translate = x => index(x) > -1 ? output[index(x)] : x;
+  return this.split('').map(translate).join('');
+}
+    </script>
+  </body>
+</html>
