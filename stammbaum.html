@@ -14,15 +14,15 @@
 <body>
   <script>
 
-var tree = d3.tree().nodeSize([(2 * Math.PI)/22.233, 640]);
+var tree = d3.tree().nodeSize([(2 * Math.PI)/22.233, 520]);
 tree.separation((a, b) => {return 1 / a.depth});
 
 var svg = d3.select("body").append("svg")
-  .attr("width", 6400)
-  .attr("height", 4800);
+  .attr("width", 5250)
+  .attr("height", 3500);
 
 var grp = svg.append("g")
-  .attr("transform", "translate(" + 3300 + "," + 2400 + ")");
+  .attr("transform", "translate(" + 2700 + "," + 1750 + ")");
 
 var stratify = d3.stratify();
 
@@ -57,13 +57,14 @@ function update(treeData){
   var enterNodes = node.enter().append("g");
   enterNodes.append("rect")
     .attr("x", d => d.id == 1 ? -170 : -85)
+	.attr("rx", 42)
     .attr("y", d => d.id == 1 ? -100 : -50)
     .attr("width", d => d.id == 1 ? 340 : 170)
     .attr("height", d => d.id == 1 ? 200 : 100)
     .attr("stroke", "black")
     .attr("fill", "white");
   var enterText = enterNodes.append("text")
-    .attr("y", -45)
+	.attr("y", d => d.data.infobox_gross.rot13().split("|").length * -6 - 3)
     .attr("style", "font: 10px sans-serif;")
     .attr("transform", d => d.id == 1 ? "scale (2)" : "")
 
@@ -78,6 +79,7 @@ function update(treeData){
     .attr("text-anchor", "middle")
     .attr("x", 0)
     .attr("dy", 12);
+
 };
 
 // Umwandlung kreisförmig angeordneter Punkte in ellipsenförmig
