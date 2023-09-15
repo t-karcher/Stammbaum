@@ -14,19 +14,19 @@
 <body>
   <script>
 
-var tree = d3.tree().nodeSize([(2 * Math.PI)/22.233, 520]);
+var tree = d3.tree().nodeSize([(2 * Math.PI)/22.473, 480]);
 tree.separation((a, b) => {return 1 / a.depth});
 
 var svg = d3.select("body").append("svg")
-  .attr("width", 5250)
-  .attr("height", 3500);
+  .attr("width", 4820)
+  .attr("height", 3250);
 
 var grp = svg.append("g")
-  .attr("transform", "translate(" + 2700 + "," + 1750 + ")");
+  .attr("transform", "translate(" + 2500 + "," + 1625 + ")");
 
 var stratify = d3.stratify();
 
-d3.csv("daten20230911.csv", function(error, data) {
+d3.csv("daten20230913.csv", function(error, data) {
   if (error) throw error;
   update(tree(stratify(data)));
 });
